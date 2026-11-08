@@ -14,6 +14,48 @@ Here's an example of what you can do when it's connected to Claude.
 
 > *Caution:* as with many MCP servers, the WhatsApp MCP is subject to [the lethal trifecta](https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/). This means that project injection could lead to private data exfiltration.
 
+## Maintained fork
+
+This fork retains attribution to [lharries/whatsapp-mcp](https://github.com/lharries/whatsapp-mcp).
+It includes loopback binding on port 8765, a matching Python API URL,
+whatsmeow v0.0.0-20261107160454-79dc2a8c33df with compatible context calls,
+and signed media-query preservation using the library's download verification.
+The bridge requires Go 1.26 or newer; local checks used Go 1.27.3.
+
+### Security warning
+
+**The HTTP API is unauthenticated. Loopback binding is not authentication.**
+Any local process, including one belonging to another local user, can call
+`http://127.0.0.1:8765/api/send` or `/api/download` while the bridge runs.
+This enables sending messages, uploading files readable by the bridge process,
+and downloading account media. These are active account-write capabilities,
+not merely passive reads or prompt-injection risks.
+**Do not run this bridge on a shared or untrusted host.**
+This fork does not claim to make the server broadly secure.
+
+Keep session databases, chats, downloaded documents and other media private.
+Repository ignore rules exclude the bridge store, executable and generated
+graph artifacts; they do not protect already-tracked files or replace review
+before publication. Publish source only.
+
+### Known functional limitations
+
+- The chat-list query has an unresolved join issue.
+- Media filenames can collide.
+- Download errors may lack useful detail.
+- Signed media URL validation currently accepts only `mmg.whatsapp.net`.
+
+### Local checks
+
+From the repository root:
+
+```sh
+cd whatsapp-bridge
+GOTOOLCHAIN=local CGO_ENABLED=1 go test -mod=readonly ./...
+GOTOOLCHAIN=local CGO_ENABLED=1 go vet -mod=readonly ./...
+GOTOOLCHAIN=local CGO_ENABLED=1 go build -mod=readonly -o /tmp/whatsapp-mcp-check .
+```
+
 ## Installation
 
 ### Prerequisites
@@ -29,7 +71,7 @@ Here's an example of what you can do when it's connected to Claude.
 1. **Clone this repository**
 
    ```bash
-   git clone https://github.com/lharries/whatsapp-mcp.git
+   git clone https://github.com/alupao/whatsapp-mcp.git
    cd whatsapp-mcp
    ```
 
